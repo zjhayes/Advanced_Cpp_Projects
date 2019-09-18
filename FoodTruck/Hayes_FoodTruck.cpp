@@ -2,11 +2,21 @@
 
 // Zachary Hayes - zjhayes@dmacc.edu - August 27th, 2019
 
+// The features I added save and load the inventory data so the user doesn't have to  re-enter it every day.
+// The first time you run the program, you'll have to initialize the inventory. It will save, and then after
+// you take purchases it will save again.
+// Then, when you run the program again, it will recognize the save file and load in the inventory data.
+// If any part of the inventory is below the "low inventory threshold", the user will be given the option
+// to "restock" (or reinitialize).
+
 #include <iostream>
 #include <vector>
 #include <iomanip>
+#include <fstream>
 
 using namespace std;
+
+/////// INGREDIENT CLASS ///////
 
 class Ingredient
 {
@@ -49,15 +59,16 @@ public:
     
 };
 
+/////// PRODUCT CLASS ///////
+
 class Product
 {
 protected:
+    bool addChilli;                     // True if chilli can be added to product.
     string name;
     float price;
     vector<Ingredient> ingredients;
     vector<int> ingredientAmount;
-    bool addChilli;                     // True if chilli can be added to product.
-    
 public:
     Product(string _name, float _price, bool _addChilli)
     {
@@ -68,7 +79,10 @@ public:
     
     Product(){}
     
-    virtual ~Product(){}
+    bool getAddChilli()
+    {
+        return addChilli;
+    }
     
     // Add ingredient to list of ingredients in product.
     void addIngredient(Ingredient _ingredient, int _amount)
@@ -78,17 +92,13 @@ public:
     }
     
     // Getters and Setters
-    virtual string getName()
+    string getName()
     {
         return name;
     }
-    virtual float getPrice()
+    float getPrice()
     {
         return price;
-    }
-    bool getAddChilli()
-    {
-        return addChilli;
     }
     int getIngredientIndex(string _name)
     {
@@ -102,7 +112,7 @@ public:
         }
         return currentIndex;
     }
-    virtual vector<Ingredient> getIngredients()
+    vector<Ingredient> getIngredients()
     {
         return ingredients;
     }
@@ -110,40 +120,14 @@ public:
     {
         return ingredientAmount[index];
     }
+    vector<int> getIngredientAmounts()
+    {
+        return ingredientAmount;
+    }
+
 };
 
-class ProductAddChilli : public Product
-{
-public:
-    
-    ProductAddChilli()
-    {
-        Product();
-    }
-    
-    float getPrice() override
-    {
-        //return this.price + FoodTruck::getInstance().getAddChilliPrice();
-        return NULL;
-    }
-    
-    string getName() override
-    {
-        return name + " (add chilli)";
-    }
-    
-    vector<Ingredient> getIngredients() override
-    {
-        // Add chilli to ingredients and return that.
-        return vector<Ingredient>{};
-    }
-    
-    void getTest()
-    {
-        
-    }
-    
-};
+/////// FOOD TRUCK CLASS ///////
 
 class FoodTruck
 {
@@ -155,8 +139,9 @@ private:
     
     float currency;
     vector<Ingredient*> inventory;
-    vector<Product*> products;
+    vector<Product> products;
     float addChilliPrice = 2.00;
+    int addChilliAmount = 4; // oz
     
     // Create ingredient objects and add them to inventory.
     void intializeIngredientInventory()
@@ -183,7 +168,7 @@ private:
         initializeAProduct("Hamburger", 5.00, true, burgerAmounts);
         int hotdogAmounts[] = {0,1,0,1,0,0,0};
         initializeAProduct("Hotdog", 5.00, true, hotdogAmounts);
-        int chilliAmounts[] = {0,0,0,0,12,0};
+        int chilliAmounts[] = {0,0,0,0,12,0,0};
         initializeAProduct("Chilli", 4.00, false, chilliAmounts);
         int friesAmount[] = {0,0,0,0,0,1,0};
         initializeAProduct("Fries (basket)", 7.00, true, friesAmount);
@@ -194,7 +179,7 @@ private:
     // Create a product and add to product list.
     void initializeAProduct(string _name, float _price, bool _addChilli, int ingredientAmounts[])
     {
-        Product* newProduct = new Product(_name, _price, _addChilli);
+        Product newProduct = Product(_name, _price, _addChilli);
         
         int ingredientIndex = 0;
         for(auto ingredient : getInventory()) // Add ingredients to product.
@@ -202,7 +187,7 @@ private:
             int ingredientAmount = ingredientAmounts[ingredientIndex];
             if(ingredientAmount > 0)
             {
-                newProduct->addIngredient(*ingredient, ingredientAmount);
+                newProduct.addIngredient(*ingredient, ingredientAmount);
             }
             ingredientIndex++;
         }
@@ -247,7 +232,7 @@ public:
         return inventory;
     }
     
-    vector<Product*> getProducts()
+    vector<Product> getProducts()
     {
         return products;
     }
@@ -260,6 +245,11 @@ public:
     float getAddChilliPrice()
     {
         return addChilliPrice;
+    }
+    
+    int getAddChilliAmount()
+    {
+        return addChilliAmount;
     }
     
     int getIngredientIndex(string _name)
@@ -289,21 +279,21 @@ public:
     }
     
     // Use ingredients and create product.
-    void makeProduct(Product _product)
+    void makeProduct(Product* _product)
     {
-        for(auto ingredient : _product.getIngredients())
+        for(auto ingredient : _product->getIngredients())
         {
             // Subtract from ingredients in stock.
             int inventoryIndex = getIngredientIndex(ingredient.getName());
             string ingredientName = ingredient.getName();
-            int ingredientIndex = _product.getIngredientIndex(ingredientName);
-            int ingredientAmount = _product.getIngredientAmount(ingredientIndex);
+            int ingredientIndex = _product->getIngredientIndex(ingredientName);
+            int ingredientAmount = _product->getIngredientAmount(ingredientIndex);
             inventory[inventoryIndex]->subtractFromInventory(ingredientAmount);
         }
     }
     
     // Checks list of ingredients against ingredients in stock.
-    bool checkIngredients(Product * _product)
+    bool checkIngredients(Product* _product)
     {
         bool passed = true;
         for(auto &ingredient : _product->getIngredients())
@@ -331,12 +321,41 @@ public:
     
 };
 
+/////// PRODUCT ADD CHILL CLASS ///////
+
+class ProductAddChilli : public Product
+{
+public:
+    
+    int chilliIndex = FoodTruck::getInstance()->getIngredientIndex("chilli");
+    Ingredient chilli = *FoodTruck::getInstance()->getInventory()[chilliIndex];
+    int chilliAmount = FoodTruck::getInstance()->getAddChilliAmount();
+    
+    ProductAddChilli()
+    {
+        Product();
+    }
+    
+    ProductAddChilli(Product _product)
+    {
+        Product();
+        name = _product.getName() + " (add chilli)";
+        price = _product.getPrice()+ FoodTruck::getInstance()->getAddChilliPrice();
+        ingredients = _product.getIngredients();
+        ingredients.push_back(chilli);
+        ingredientAmount = _product.getIngredientAmounts();
+        ingredientAmount.push_back(chilliAmount);
+    }
+};
+
+
+/////// MAIN CLASS ///////
+
 
 // Constants
 const int SENTINEL = 0;
 const float SALES_TAX = .05;
 const float LOW_INVENTORY_PERCENT = .2;
-
 
 // Function Declarations
 void initializeInventory();
@@ -345,9 +364,14 @@ void closeRegister();
 void printMenu();
 void takeCustomerOrders();
 bool validateOrder(int);
-void askToAddChilli(Product*);
+void askToAddChilli(Product);
 void processOrder(Product*);
+void processOrder(ProductAddChilli*);
 float calculatePriceWithTax(float);
+bool checkInventoryAlerts();
+void saveInventory();
+bool loadInventory();
+bool askToRestock();
 
 // Weird C++ stuff.
 FoodTruck* FoodTruck::instance = 0;
@@ -362,10 +386,44 @@ int main()
     return 0;
 }
 
-// Set initial inventory
+// Attempt to load inventory, otherwise take inventory via user input.
 void initializeInventory()
 {
-    FoodTruck::getInstance()->initializeInventoryFromConsole();
+    bool loaded = loadInventory();
+    
+    if(loaded && checkInventoryAlerts()) // If inventory is low, asks to restock.
+    {
+        loaded = !askToRestock();
+    }
+    
+    if(!loaded)
+    {
+        FoodTruck::getInstance()->initializeInventoryFromConsole();
+    }
+    saveInventory();
+}
+
+bool askToRestock()
+{
+    string answer;
+    cout << "Inventory is low. Restock inventory? (y/n): ";
+    cin >> answer;
+    
+    char answerLowerChar = tolower(answer.front(), locale());
+    
+    if(answerLowerChar == 'y')
+    {
+        return true;
+    }
+    else if(answerLowerChar == 'n')
+    {
+        return false;
+    }
+    else
+    {
+        cout << "Invalid entry. Try again." << endl;
+        return askToRestock();
+    }
 }
 
 // Take and process customer orders.
@@ -389,11 +447,11 @@ void printMenu()
     for(auto &product : FoodTruck::getInstance()->getProducts())
     {
         cout << std::fixed << std::setprecision(2);
-        string name = product->getName();
-        float price = product->getPrice();
+        string name = product.getName();
+        float price = product.getPrice();
         cout << menuItem << ". " << name << setw(20 - (int)name.length()) << "$" << price << endl;
         
-        if(product->getAddChilli())
+        if(product.getAddChilli())
         {
             cout << "     + add chilli" << setw(6) << "$" << (price + addChilliPrice) << endl;
         }
@@ -417,7 +475,16 @@ void takeCustomerOrders()
         cout << "Order: ";
         cin >> order;
         
-        exit = validateOrder(order);
+        if(!cin)
+        {
+            cin.clear();
+            cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            cout << "Invalid entry. Please enter the product's menu number." << endl;
+        }
+        else
+        {
+            exit = validateOrder(order);
+        }
     }
 }
 
@@ -429,12 +496,15 @@ bool validateOrder(int _order)
     if(_order > 0 && _order <= truck->getProducts().size())
     {
         int orderIndex = _order - 1; // Menu number is 1 more than product index.
-        Product *product = truck->getProducts()[orderIndex];
-        if(product->getAddChilli())
+        Product product = truck->getProducts()[orderIndex];
+        if(product.getAddChilli())
         {
             askToAddChilli(product);
         }
-        processOrder(product);
+        else
+        {
+            processOrder(&product);
+        }
     }
     else if(_order == SENTINEL)
     {
@@ -455,8 +525,22 @@ void processOrder(Product* _product)
     
     if(truck->checkIngredients(_product)) // Check ingredients against stock
     {
-        truck->makeProduct(*_product);
-        float totalPrice = calculatePriceWithTax(_product->getPrice());
+        truck->makeProduct(_product);
+        float totalPrice = calculatePriceWithTax((*_product).getPrice());
+        cout << "Price: $" << totalPrice << endl << endl;
+        truck->deposit(totalPrice); // Add to currency.
+    }
+}
+
+// Process chilli orders.
+void processOrder(ProductAddChilli* _product)
+{
+    FoodTruck* truck = FoodTruck::getInstance();
+    
+    if(truck->checkIngredients(_product)) // Check ingredients against stock
+    {
+        truck->makeProduct(_product);
+        float totalPrice = calculatePriceWithTax((*_product).getPrice());
         cout << "Price: $" << totalPrice << endl << endl;
         truck->deposit(totalPrice); // Add to currency.
     }
@@ -467,7 +551,7 @@ float calculatePriceWithTax(float price)
     return price + (price * SALES_TAX);
 }
 
-void askToAddChilli(Product* _product)
+void askToAddChilli(Product _product)
 {
     string answer;
     cout << "Add chilli? (y/n): ";
@@ -477,15 +561,12 @@ void askToAddChilli(Product* _product)
     
     if(answerLowerChar == 'y')
     {
-        ProductAddChilli productAddChilli = *new ProductAddChilli();
-        *_product = productAddChilli;
-        //_product->get
-        
-        
+        ProductAddChilli chilliProduct = static_cast<ProductAddChilli>(_product);
+        processOrder(&chilliProduct);
     }
     else if(answerLowerChar == 'n')
     {
-        return;
+        processOrder(&_product);
     }
     else
     {
@@ -497,9 +578,80 @@ void askToAddChilli(Product* _product)
 // Output sales data.
 void closeRegister()
 {
+    saveInventory();
+    checkInventoryAlerts();
     
     cout << endl << "Total earnings: $" << FoodTruck::getInstance()->getCurrency();
     cout << endl << endl;
 }
 
+// If item is below 20% in inventory, prints alert.
+bool checkInventoryAlerts()
+{
+    bool alertFound = false;
+    FoodTruck* truck = FoodTruck::getInstance();
+    vector<Ingredient*> inventory = truck->getInventory();
+    
+    for(auto &ingredient : inventory)
+    {
+        if(ingredient->getCurrentInventory() < (ingredient->getMaxInventory() * LOW_INVENTORY_PERCENT))
+        {
+            cout << ingredient->getName() << " is below 20%" << endl;
+            alertFound = true;
+        }
+    }
+    
+    return alertFound;
+}
 
+// Saves inventory to a text file so it can be reloaded.
+void saveInventory()
+{
+    ofstream writer("food_truck_inventory.txt");
+    FoodTruck* truck = FoodTruck::getInstance();
+    vector<Ingredient*> inventory = truck->getInventory();
+    string inventoryString;
+    
+    for(auto &ingredient : inventory)
+    {
+        string itemString = to_string(ingredient->getCurrentInventory());
+        inventoryString.append(itemString + "\n");
+    }
+    
+    if(writer)
+    {
+        writer << inventoryString;
+    }
+    else
+    {
+        cout << "Error: Could not update inventory file." << endl;
+    }
+    
+    writer.close();
+}
+
+// Load inventory, returns true is successful.
+bool loadInventory()
+{
+    FoodTruck* truck = FoodTruck::getInstance();
+    vector<Ingredient*> inventory = truck->getInventory();
+    ifstream reader("food_truck_inventory.txt");
+    
+    if(reader)
+    {
+        for(auto ingredient : inventory)
+        {
+            if(!reader.eof())
+            {
+                string line;
+                getline(reader, line);
+                if(line == ""){break;}
+                int currentInventory = stoi(line);
+                ingredient->setCurrentInventory(currentInventory);
+            }
+        }
+        return true;
+    }
+    
+    return false;
+}
