@@ -336,8 +336,8 @@ private:
     // Outputs final score, congratulates winner.
     void determineGameWinner()
     {
-        int p1Score = 5;//player1->getScore();
-        int p2Score = 5;//player2->getScore();
+        int p1Score = player1->getScore();
+        int p2Score = player2->getScore();
         cout << endl << "--FINAL SCORE--" << endl;
         cout << player1->getName() << ": " << p1Score << endl;
         cout << player2->getName() << ": " << p2Score << endl;
@@ -361,7 +361,25 @@ private:
     // Returns true to exit game.
     bool askToExit()
     {
-        return true;
+        string answer;
+        cout << "Play again? (y/n): ";
+        cin >> answer;
+        
+        char answerLowerChar = tolower(answer.front(), locale());
+        
+        if(answerLowerChar == 'y')
+        {
+            return false;
+        }
+        else if(answerLowerChar == 'n')
+        {
+            return true;
+        }
+        else
+        {
+            cout << "Invalid entry. Try again." << endl;
+            return askToExit();
+        }
     }
     
 public:
@@ -386,7 +404,7 @@ public:
 int main()
 {
     cout << "FISH WAR" << endl;
-    IPlayer* player1 = new Player("Player1");
+    IPlayer* player1 = new AI("Player1");
     IPlayer* player2 = new AI();
     
     Game game = Game(player1, player2);
