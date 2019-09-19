@@ -404,7 +404,7 @@ public:
 int main()
 {
     cout << "FISH WAR" << endl;
-    IPlayer* player1 = new AI("Player1");
+    IPlayer* player1 = new Player("Player1");
     IPlayer* player2 = new AI();
     
     Game game = Game(player1, player2);
