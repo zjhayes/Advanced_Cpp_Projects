@@ -1,0 +1,20 @@
+self-confident,red
+likes involvement,yellow
+stubborn,green
+prolific mental imager,blue
+demanding,red
+joiner,yellow
+mild mannered,blue
+cautious,green
+reserved,green
+authoritative,red
+talkative,yellow
+leader,red
+task-oriented,green
+emotional,blue
+indirect,yellow
+enjoys watching people,blue
+very self-confident,red
+trusting,yellow
+logical,green
+easily offended,blue

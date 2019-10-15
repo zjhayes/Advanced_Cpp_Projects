@@ -1,0 +1,108 @@
+self-confident,red
+spontaneous,red
+likes involvement,yellow
+stubborn,green
+demanding,red
+joiner,yellow
+cautious,green
+caring/helpful,yellow
+believable,yellow
+daring,red
+logical,green
+eager beaver,red
+reserved,green
+authoritative,red
+talkative,yellow
+leader,red
+meticulous,green
+industrious,red
+task-oriented,green
+emotional,blue
+irritable,red
+indirect,yellow
+goal-oriented,red
+excels in emergencies,red
+enjoys watching people,blue
+very self-confident,red
+neat & tidy,green
+structured,green
+checks with others,yellow
+likes organization,green
+dictatorial,red
+nurturing,yellow
+likes to brainstorm,blue
+overgenerous,blue
+outspoken,red
+forceful,red
+idealist,blue
+contented,blue
+imaginative,blue
+inventive,blue
+team worker,yellow
+restless,red
+counselor,yellow
+workaholic,red
+attentive to details,green
+people-oriented,yellow
+flexible/adaptable,yellow
+rigid,green
+frank/candid,red
+capable,blue
+thrives on compliments,yellow
+strong-willed/determined,red
+cautiously makes friends,blue
+looks good on outside,yellow
+sensitive,blue
+dreamer,blue
+likes being straightforward,red
+rebellious,yellow
+persistent,green
+resists change,green
+harmonious,yellow
+steadfast behavior,green
+disciplined,green
+dutiful,green
+friendly,yellow
+accurate/precise,green
+charismatic,red
+independent,blue
+conscientious/attentive,green
+designer,blue
+supportive,yellow
+prolific mental imager,blue
+idea-oriented,blue
+likes recognition,red
+easily slighted,blue
+careful,blue
+volunteers for tasks,yellow
+dry sense of humor,blue
+enthusiastic,yellow
+likes to be thorough,green
+avoids conflict,blue
+trusting,yellow
+analytical,green
+likes to explore,red
+easily offended,blue
+quiet,blue
+takes charge,red
+energetic,red
+mild mannered,blue
+possessive,blue
+playful,yellow
+bold/audacious,red
+well liked,yellow
+optimistic,yellow
+conservative/traditional,green
+modest/unassuming,blue
+controller,green
+self-directed,blue
+positive thinker,yellow
+result-oriented,red
+particular,green
+easily threatened,yellow
+strict,green
+schedule-oriented,green
+avoids causing attention,green
+sets very high standards,green
+dresses in trendy ways,yellow
+usually right,red
